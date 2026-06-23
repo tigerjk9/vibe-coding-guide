@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>초등교사를 위한 바이브코딩 — 고급 활용 & 안정적 배포</title>
+<meta name="description" content="장흥초 교사 연수 보조자료. Gemini Canvas / Claude로 완성도 높은 수업 웹앱을 만들고 Netlify·GitHub Pages로 안정적으로 배포하는 올인원 가이드." />
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<script>
+  tailwind.config = {
+    theme: { extend: { fontFamily: { sans: ['Pretendard', 'system-ui', '-apple-system', 'sans-serif'] } } }
+  };
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  body {
+    -webkit-font-smoothing: antialiased;
+    background-color:#FFFBEB;
+    background-image: radial-gradient(#0000001a 1.2px, transparent 1.2px);
+    background-size: 20px 20px;
+  }
+  /* 네오브루탈리즘 유틸 */
+  .nb    { border:3px solid #000; box-shadow:5px 5px 0 #000; }
+  .nb-lg { border:3px solid #000; box-shadow:8px 8px 0 #000; }
+  .nb-sm { border:2px solid #000; box-shadow:3px 3px 0 #000; }
+  .nb-press { transition: transform .08s ease, box-shadow .08s ease; }
+  .nb-press:hover  { transform: translate(2px,2px); box-shadow:3px 3px 0 #000; }
+  .nb-press:active { transform: translate(5px,5px); box-shadow:0 0 0 #000; }
+  .tab-btn { border:2px solid #000; background:#fff; transition:.08s; }
+  .tab-btn.active { background:#FFD93D; box-shadow:3px 3px 0 #000; }
+  .mtab { border:2px solid #000; background:#fff; }
+  .mtab.active { background:#FFD93D; }
+  .fade-in { animation: fadeIn .3s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px);} to {opacity:1; transform:none;} }
+  .code-scroll::-webkit-scrollbar { height:8px; width:8px; }
+  .code-scroll::-webkit-scrollbar-thumb { background:#000; border-radius:0; }
+  details > summary { list-style:none; cursor:pointer; }
+  details > summary::-webkit-details-marker { display:none; }
+  details[open] .acc-arrow { transform: rotate(180deg); }
+  .flow-step .step-ico { width:54px;height:54px;display:grid;place-items:center;font-size:24px;margin:0 auto 8px;border:3px solid #000;border-radius:10px; box-shadow:3px 3px 0 #000; }
+  .flow-step .step-t { font-size:12px;font-weight:800;color:#000;line-height:1.3; }
+</style>
+</head>
+<body class="text-black min-h-screen">
+
+<!-- ============ 헤더 / 네비게이션 ============ -->
+<header class="sticky top-0 z-40 bg-[#FFD93D] border-b-[3px] border-black">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+    <div class="flex items-center gap-2.5 min-w-0">
+      <div class="w-11 h-11 rounded-lg bg-[#FF6B9D] border-[3px] border-black grid place-items-center text-xl shrink-0">🧑‍🏫</div>
+      <div class="min-w-0">
+        <p class="font-black text-black leading-tight truncate">초등교사를 위한 바이브코딩</p>
+        <p class="text-[11px] font-extrabold text-black/70 leading-tight">고급 활용 &amp; 안정적 배포 · 장흥초 연수</p>
+      </div>
+    </div>
+    <nav id="tabnav" class="hidden md:flex items-center gap-1.5 text-sm font-extrabold text-black">
+      <button data-tab="home" class="tab-btn active px-3.5 py-1.5 rounded-md">홈</button>
+      <button data-tab="guide" class="tab-btn px-3.5 py-1.5 rounded-md">제작 가이드</button>
+      <button data-tab="prompt" class="tab-btn px-3.5 py-1.5 rounded-md">프롬프트</button>
+      <button data-tab="deploy" class="tab-btn px-3.5 py-1.5 rounded-md">배포 비교</button>
+      <button data-tab="gallery" class="tab-btn px-3.5 py-1.5 rounded-md">갤러리</button>
+      <button data-tab="checklist" class="tab-btn px-3.5 py-1.5 rounded-md">체크리스트</button>
+    </nav>
+    <button id="menuBtn" class="md:hidden w-11 h-11 grid place-items-center rounded-lg bg-white border-[3px] border-black text-xl nb-press">☰</button>
+  </div>
+  <div id="mobileMenu" class="md:hidden hidden border-t-[3px] border-black bg-[#FFD93D] px-4 py-3 grid grid-cols-3 gap-2 text-sm font-extrabold text-black">
+    <button data-tab="home" class="mtab active px-2 py-2 rounded-md">홈</button>
+    <button data-tab="guide" class="mtab px-2 py-2 rounded-md">제작 가이드</button>
+    <button data-tab="prompt" class="mtab px-2 py-2 rounded-md">프롬프트</button>
+    <button data-tab="deploy" class="mtab px-2 py-2 rounded-md">배포 비교</button>
+    <button data-tab="gallery" class="mtab px-2 py-2 rounded-md">갤러리</button>
+    <button data-tab="checklist" class="mtab px-2 py-2 rounded-md">체크리스트</button>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 py-8">
+
+  <!-- ============ 1. 홈 ============ -->
+  <section data-panel="home" class="panel">
+    <div class="text-center max-w-3xl mx-auto mb-10">
+      <span class="inline-block px-4 py-1.5 rounded-md bg-[#4ECDC4] border-[3px] border-black text-black text-xs font-black mb-5 -rotate-1">연수 보조자료 · Gemini Canvas 기준</span>
+      <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-black leading-[1.15]">
+        수업 아이디어를 <span class="inline-block bg-[#FF6B9D] border-[3px] border-black px-2 -rotate-1">완성된 웹앱</span>으로,<br />
+        <span class="inline-block bg-[#B388FF] border-[3px] border-black px-2 rotate-1 mt-2">안정적으로 배포</span>까지
+      </h1>
+      <p class="mt-6 text-black/80 text-base sm:text-lg font-semibold">
+        간단한 바이브코딩을 넘어, <b class="text-black">완성도 높은 제작 방법</b>과<br class="hidden sm:block" />
+        <b class="text-black">언제든 접속 가능한 배포</b>까지 한 곳에서 익힙니다.
+      </p>
+      <div class="mt-7 flex flex-wrap justify-center gap-3">
+        <button data-goto="guide" class="px-5 py-3 rounded-lg bg-[#FF6B9D] border-[3px] border-black text-black font-black nb-press" style="box-shadow:5px 5px 0 #000">제작 가이드 시작 →</button>
+        <button data-goto="gallery" class="px-5 py-3 rounded-lg bg-white border-[3px] border-black text-black font-black nb-press" style="box-shadow:5px 5px 0 #000">샘플 먼저 보기</button>
+      </div>
+    </div>
+
+    <div class="bg-white nb rounded-lg p-6 sm:p-8">
+      <h2 class="text-center font-black text-black text-xl mb-1">오늘의 학습 흐름</h2>
+      <p class="text-center text-sm font-bold text-black/50 mb-6">아이디어부터 배포까지 6단계</p>
+      <div class="grid grid-cols-2 md:grid-cols-6 gap-4">
+        <div class="flow-step text-center"><div class="step-ico" style="background:#FFD93D">💡</div><p class="step-t">아이디어<br>구체화</p></div>
+        <div class="flow-step text-center"><div class="step-ico" style="background:#B388FF">🧩</div><p class="step-t">기능<br>분해</p></div>
+        <div class="flow-step text-center"><div class="step-ico" style="background:#4ECDC4">✍️</div><p class="step-t">구조화<br>프롬프트</p></div>
+        <div class="flow-step text-center"><div class="step-ico" style="background:#FF8C42">⚙️</div><p class="step-t">제작 &amp;<br>반복 개선</p></div>
+        <div class="flow-step text-center"><div class="step-ico" style="background:#FF6B9D">🔍</div><p class="step-t">테스트<br>(학생 입장)</p></div>
+        <div class="flow-step text-center"><div class="step-ico" style="background:#B8E986">🚀</div><p class="step-t">안정적<br>배포</p></div>
+      </div>
+    </div>
+
+    <div class="grid sm:grid-cols-3 gap-5 mt-6">
+      <div class="bg-[#FFD93D] nb rounded-lg p-5">
+        <p class="text-3xl mb-2">🎯</p>
+        <h3 class="font-black text-black mb-1">완성도의 차이</h3>
+        <p class="text-sm text-black/80 leading-relaxed font-semibold">데이터 분리·상태 저장·반응형·접근성. "작동만"이 아니라 "수업에서 쓸 수 있게".</p>
+      </div>
+      <div class="bg-[#4ECDC4] nb rounded-lg p-5">
+        <p class="text-3xl mb-2">🔗</p>
+        <h3 class="font-black text-black mb-1">안정적 배포</h3>
+        <p class="text-sm text-black/80 leading-relaxed font-semibold">Canvas 링크는 임시적. 고정 URL로 배포해야 다음 수업에도, 다른 반에도 그대로.</p>
+      </div>
+      <div class="bg-[#FF6B9D] nb rounded-lg p-5">
+        <p class="text-3xl mb-2">🛡️</p>
+        <h3 class="font-black text-black mb-1">안전·윤리</h3>
+        <p class="text-sm text-black/80 leading-relaxed font-semibold">학생 실명·얼굴·민감정보는 넣지 않기. 익명·로컬 처리 원칙을 끝까지.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2. 제작 가이드 ============ -->
+  <section data-panel="guide" class="panel hidden">
+    <div class="mb-6">
+      <h2 class="text-2xl sm:text-3xl font-black text-black inline-block bg-[#FFD93D] border-[3px] border-black px-3 py-1 -rotate-1">고급 제작 가이드</h2>
+      <p class="text-black/70 mt-3 font-semibold">"작동하는 초안"에서 "수업에 쓰는 완성품"으로 끌어올리는 방법</p>
+    </div>
+
+    <div class="bg-white nb rounded-lg p-5 sm:p-7 mb-6">
+      <h3 class="font-black text-black mb-4 flex items-center gap-2"><span>📊</span> 입문 바이브코딩 vs 고급 바이브코딩</h3>
+      <div class="overflow-x-auto code-scroll">
+        <table class="w-full text-sm border-collapse min-w-[560px]">
+          <thead>
+            <tr class="text-left">
+              <th class="py-2.5 px-3 bg-black text-white font-black w-1/4 border-2 border-black">구분</th>
+              <th class="py-2.5 px-3 bg-[#FF6B9D] font-black text-black border-2 border-black">입문 (지금까지)</th>
+              <th class="py-2.5 px-3 bg-[#B8E986] font-black text-black border-2 border-black">고급 (이번 연수)</th>
+            </tr>
+          </thead>
+          <tbody class="font-semibold">
+            <tr><td class="py-2.5 px-3 font-black border-2 border-black bg-[#FFFBEB]">데이터</td><td class="py-2.5 px-3 border-2 border-black">코드에 문제를 직접 입력</td><td class="py-2.5 px-3 border-2 border-black">문제를 배열/JSON으로 분리 → 추가·교체 쉬움</td></tr>
+            <tr><td class="py-2.5 px-3 font-black border-2 border-black bg-[#FFFBEB]">화면</td><td class="py-2.5 px-3 border-2 border-black">한 화면 고정</td><td class="py-2.5 px-3 border-2 border-black">시작 → 문제 → 결과 화면 전환</td></tr>
+            <tr><td class="py-2.5 px-3 font-black border-2 border-black bg-[#FFFBEB]">기록</td><td class="py-2.5 px-3 border-2 border-black">새로고침하면 초기화</td><td class="py-2.5 px-3 border-2 border-black">localStorage로 점수·진행 저장</td></tr>
+            <tr><td class="py-2.5 px-3 font-black border-2 border-black bg-[#FFFBEB]">디자인</td><td class="py-2.5 px-3 border-2 border-black">PC에서만 보기 좋음</td><td class="py-2.5 px-3 border-2 border-black">태블릿·전자칠판까지 반응형</td></tr>
+            <tr><td class="py-2.5 px-3 font-black border-2 border-black bg-[#FFFBEB]">접근성</td><td class="py-2.5 px-3 border-2 border-black">고려 안 함</td><td class="py-2.5 px-3 border-2 border-black">큰 글자·넓은 버튼·키보드·읽어주기</td></tr>
+            <tr><td class="py-2.5 px-3 font-black border-2 border-black bg-[#FFFBEB]">배포</td><td class="py-2.5 px-3 border-2 border-black">Canvas 미리보기로 끝</td><td class="py-2.5 px-3 border-2 border-black">고정 URL로 배포 → 재사용·공유</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <h3 class="font-black text-black mb-3 flex items-center gap-2 text-lg"><span>🧭</span> 제작 워크플로 7단계</h3>
+    <div class="space-y-3 mb-8" id="workflow"></div>
+
+    <h3 class="font-black text-black mb-3 flex items-center gap-2 text-lg"><span>⚡</span> 완성도를 높이는 5가지 기법</h3>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div class="bg-white nb rounded-lg p-5"><h4 class="font-black text-black mb-1.5">① 데이터 분리</h4><p class="text-sm text-black/80 font-semibold leading-relaxed">문제·정답을 코드 맨 위 배열로 빼두면, 코딩을 몰라도 내용만 바꿔 재사용할 수 있어요.</p></div>
+      <div class="bg-white nb rounded-lg p-5"><h4 class="font-black text-black mb-1.5">② 상태 저장</h4><p class="text-sm text-black/80 font-semibold leading-relaxed">localStorage로 최고 점수·진행 상황을 저장. 새로고침해도 이어집니다.</p></div>
+      <div class="bg-white nb rounded-lg p-5"><h4 class="font-black text-black mb-1.5">③ 반응형</h4><p class="text-sm text-black/80 font-semibold leading-relaxed">"전자칠판(큰 화면)과 학생 태블릿에서 모두 잘 보이게"라고 요청하세요.</p></div>
+      <div class="bg-white nb rounded-lg p-5"><h4 class="font-black text-black mb-1.5">④ 접근성</h4><p class="text-sm text-black/80 font-semibold leading-relaxed">저학년엔 큰 글자·넓은 버튼·읽어주기(TTS). "1~2학년도 혼자 쓸 수 있게".</p></div>
+      <div class="bg-white nb rounded-lg p-5"><h4 class="font-black text-black mb-1.5">⑤ 안전 설계</h4><p class="text-sm text-black/80 font-semibold leading-relaxed">서버 없이 브라우저 안에서만 동작 → 개인정보 수집·전송 없음. 가장 안전.</p></div>
+      <div class="bg-white nb rounded-lg p-5"><h4 class="font-black text-black mb-1.5">＋ 한 파일 유지</h4><p class="text-sm text-black/80 font-semibold leading-relaxed">HTML·CSS·JS를 한 파일로. 복사·배포·공유가 가장 쉬워집니다.</p></div>
+    </div>
+  </section>
+
+  <!-- ============ 3. 프롬프트 ============ -->
+  <section data-panel="prompt" class="panel hidden">
+    <div class="mb-6">
+      <h2 class="text-2xl sm:text-3xl font-black text-black inline-block bg-[#B388FF] border-[3px] border-black px-3 py-1 -rotate-1">프롬프트 레퍼런스</h2>
+      <p class="text-black/70 mt-3 font-semibold">복사해서 Gemini Canvas / Claude에 바로 붙여넣으세요</p>
+    </div>
+
+    <div class="bg-[#B388FF] nb-lg rounded-lg p-6 sm:p-7 text-black mb-6">
+      <h3 class="font-black text-lg mb-3 flex items-center gap-2">🧪 고급 프롬프트 공식</h3>
+      <div class="grid sm:grid-cols-2 gap-2.5 text-sm font-semibold">
+        <div class="bg-white border-2 border-black rounded-md px-3.5 py-2.5"><b>① 대상</b> · 누가 쓰나 (학년·교사/학생)</div>
+        <div class="bg-white border-2 border-black rounded-md px-3.5 py-2.5"><b>② 목표·주제</b> · 어떤 수업, 무엇을 학습</div>
+        <div class="bg-white border-2 border-black rounded-md px-3.5 py-2.5"><b>③ 화면·흐름</b> · 시작→문제→결과 등 장면</div>
+        <div class="bg-white border-2 border-black rounded-md px-3.5 py-2.5"><b>④ 기능</b> · 점수·힌트·다시·저장 등</div>
+        <div class="bg-white border-2 border-black rounded-md px-3.5 py-2.5"><b>⑤ 데이터</b> · 문제를 배열로 분리해서</div>
+        <div class="bg-white border-2 border-black rounded-md px-3.5 py-2.5"><b>⑥ 조건·기술</b> · 한 파일 HTML, 라이브러리 없이</div>
+        <div class="bg-white border-2 border-black rounded-md px-3.5 py-2.5"><b>⑦ 디자인</b> · 색감·큰 글자·반응형</div>
+        <div class="bg-white border-2 border-black rounded-md px-3.5 py-2.5"><b>⑧ 안전</b> · 개인정보 수집·전송 금지</div>
+      </div>
+    </div>
+
+    <div class="space-y-4" id="snippets"></div>
+  </section>
+
+  <!-- ============ 4. 배포 비교 ============ -->
+  <section data-panel="deploy" class="panel hidden">
+    <div class="mb-6">
+      <h2 class="text-2xl sm:text-3xl font-black text-black inline-block bg-[#4ECDC4] border-[3px] border-black px-3 py-1 -rotate-1">배포 비교 가이드</h2>
+      <p class="text-black/70 mt-3 font-semibold">"안정적 배포"가 핵심 — 상황에 맞는 방법을 고르세요</p>
+    </div>
+
+    <!-- 실제 배포 예시 배너 (배포 후 채워짐) -->
+    <div id="liveDeployBanner" class="bg-[#B8E986] nb rounded-lg p-5 mb-6">
+      <h3 class="font-black text-black flex items-center gap-2 mb-2">🌐 이 자료의 실제 배포 예시</h3>
+      <p class="text-sm font-semibold text-black/80 mb-3">지금 보고 계신 이 페이지는 아래 두 방법으로 <b>실제 배포</b>되어 있습니다. 연수에서 "같은 파일, 두 가지 배포"를 그대로 보여줄 수 있어요.</p>
+      <div class="grid sm:grid-cols-2 gap-3" id="liveLinks">
+        <div class="bg-white border-2 border-black rounded-md p-3">
+          <p class="font-black text-black text-sm">Netlify Drop</p>
+          <a id="netlifyLink" href="#" target="_blank" class="text-xs font-bold text-[#0e7490] underline break-all">배포 후 링크가 표시됩니다</a>
+        </div>
+        <div class="bg-white border-2 border-black rounded-md p-3">
+          <p class="font-black text-black text-sm">GitHub Pages</p>
+          <a id="ghPagesLink" href="#" target="_blank" class="text-xs font-bold text-[#7c3aed] underline break-all">배포 후 링크가 표시됩니다</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white nb rounded-lg p-5 sm:p-7 mb-6 overflow-x-auto code-scroll">
+      <table class="w-full text-sm border-collapse min-w-[640px]">
+        <thead>
+          <tr class="text-left">
+            <th class="py-2.5 px-3 bg-black text-white font-black border-2 border-black">방법</th>
+            <th class="py-2.5 px-3 bg-black text-white font-black border-2 border-black">난이도</th>
+            <th class="py-2.5 px-3 bg-black text-white font-black border-2 border-black">URL 지속성</th>
+            <th class="py-2.5 px-3 bg-black text-white font-black border-2 border-black">비용</th>
+            <th class="py-2.5 px-3 bg-black text-white font-black border-2 border-black">추천 상황</th>
+          </tr>
+        </thead>
+        <tbody class="font-semibold">
+          <tr>
+            <td class="py-3 px-3 font-black border-2 border-black bg-[#B388FF]">Gemini Canvas 공유</td>
+            <td class="py-3 px-3 border-2 border-black">⭐ 매우 쉬움</td>
+            <td class="py-3 px-3 border-2 border-black bg-[#FFE3EC]">임시적 · 수정 시 변동</td>
+            <td class="py-3 px-3 border-2 border-black">무료</td>
+            <td class="py-3 px-3 border-2 border-black">만드는 중 즉시 보여주기, 1회성 시연</td>
+          </tr>
+          <tr>
+            <td class="py-3 px-3 font-black border-2 border-black bg-[#4ECDC4]">Netlify Drop</td>
+            <td class="py-3 px-3 border-2 border-black">⭐⭐ 쉬움</td>
+            <td class="py-3 px-3 border-2 border-black bg-[#E3FCD8] font-black">고정 · 안정적</td>
+            <td class="py-3 px-3 border-2 border-black">무료</td>
+            <td class="py-3 px-3 border-2 border-black"><b>학생 배부·재사용용 (가장 추천)</b></td>
+          </tr>
+          <tr>
+            <td class="py-3 px-3 font-black border-2 border-black bg-[#FFD93D]">GitHub Pages</td>
+            <td class="py-3 px-3 border-2 border-black">⭐⭐⭐ 보통</td>
+            <td class="py-3 px-3 border-2 border-black bg-[#E3FCD8] font-black">고정 · 안정적</td>
+            <td class="py-3 px-3 border-2 border-black">무료</td>
+            <td class="py-3 px-3 border-2 border-black">버전관리·여러 자료 모아 운영</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="bg-[#FFD93D] nb rounded-lg p-5 mb-6 text-sm font-semibold text-black">
+      <b class="font-black">👉 빠른 선택:</b> 수업 중 바로 보여주기만 하면 <b>Canvas 공유</b>,
+      학생에게 링크/QR로 나눠주고 다음에도 쓰려면 <b>Netlify Drop</b>,
+      자료를 계속 쌓아 관리하려면 <b>GitHub Pages</b>.
+    </div>
+
+    <h3 class="font-black text-black mb-3 flex items-center gap-2 text-lg"><span>📦</span> 방법별 단계 (펼쳐 보기)</h3>
+    <div class="space-y-3" id="deploySteps"></div>
+  </section>
+
+  <!-- ============ 5. 갤러리 ============ -->
+  <section data-panel="gallery" class="panel hidden">
+    <div class="mb-6">
+      <h2 class="text-2xl sm:text-3xl font-black text-black inline-block bg-[#FF6B9D] border-[3px] border-black px-3 py-1 -rotate-1">샘플 갤러리</h2>
+      <p class="text-black/70 mt-3 font-semibold">교과별 완성 예제 — <b>프롬프트 보기</b>로 그대로 따라 만들 수 있어요</p>
+    </div>
+
+    <div class="bg-white nb rounded-lg p-5 sm:p-7 mb-6">
+      <div class="flex flex-wrap items-center gap-2 mb-2">
+        <span class="px-2.5 py-1 rounded-md bg-[#FF6B9D] border-2 border-black text-black text-xs font-black">LIVE 데모 · 수학 4학년</span>
+        <span class="text-xs font-bold text-black/50">실제로 작동합니다 — 직접 눌러보세요</span>
+      </div>
+      <h3 class="font-black text-black text-lg mb-4">분수 비교 퀴즈 (고급 기능 적용 예시)</h3>
+      <div id="fracDemo" class="max-w-md mx-auto bg-[#FFF4CC] nb rounded-lg p-5">
+        <div class="flex justify-between items-center mb-4 text-sm font-black">
+          <span>문제 <span id="qNum">1</span></span>
+          <span>점수 <span id="score">0</span> · 최고 <span id="best">0</span></span>
+        </div>
+        <p class="text-center text-black font-black mb-4">두 분수를 비교해 보세요!</p>
+        <div class="flex items-center justify-center gap-3 mb-5">
+          <div class="w-20 h-24 bg-white border-[3px] border-black rounded-md grid place-items-center text-3xl font-black text-black" id="fracA"></div>
+          <div class="text-2xl font-black text-black">vs</div>
+          <div class="w-20 h-24 bg-white border-[3px] border-black rounded-md grid place-items-center text-3xl font-black text-black" id="fracB"></div>
+        </div>
+        <div class="grid grid-cols-3 gap-2 mb-3">
+          <button class="cmp-btn py-3 rounded-md bg-[#FF6B9D] border-[3px] border-black font-black text-lg text-black nb-press" data-op="gt">&gt;</button>
+          <button class="cmp-btn py-3 rounded-md bg-[#FFD93D] border-[3px] border-black font-black text-lg text-black nb-press" data-op="eq">=</button>
+          <button class="cmp-btn py-3 rounded-md bg-[#4ECDC4] border-[3px] border-black font-black text-lg text-black nb-press" data-op="lt">&lt;</button>
+        </div>
+        <p id="fracMsg" class="text-center text-sm font-black min-h-[20px] mb-3"></p>
+        <div class="flex gap-2">
+          <button id="hintBtn" class="flex-1 py-2.5 rounded-md bg-[#FFD93D] border-[3px] border-black text-black font-black text-sm nb-press">💡 힌트</button>
+          <button id="nextBtn" class="flex-1 py-2.5 rounded-md bg-[#B388FF] border-[3px] border-black text-black font-black text-sm nb-press">다음 →</button>
+        </div>
+        <p id="hintBox" class="hidden mt-3 text-xs font-semibold text-black bg-white border-2 border-black rounded-md p-2.5 text-center"></p>
+      </div>
+      <p class="text-center text-xs font-bold text-black/50 mt-3">※ 데이터 분리·점수 상태·localStorage 최고점 저장·힌트(통분) — 고급 기법이 모두 들어간 예시입니다.</p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" id="galleryGrid"></div>
+  </section>
+
+  <!-- ============ 6. 체크리스트 ============ -->
+  <section data-panel="checklist" class="panel hidden">
+    <div class="mb-6">
+      <h2 class="text-2xl sm:text-3xl font-black text-black inline-block bg-[#FF8C42] border-[3px] border-black px-3 py-1 -rotate-1">배포 전 체크리스트 &amp; 문제 해결</h2>
+      <p class="text-black/70 mt-3 font-semibold">학생에게 내보내기 전, 이것만 확인하세요 (체크 상태는 자동 저장)</p>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-6">
+      <div class="bg-white nb rounded-lg p-5 sm:p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-black text-black flex items-center gap-2"><span>✅</span> 배포 전 체크리스트</h3>
+          <button id="resetCheck" class="text-xs font-black text-black bg-[#FF6B9D] border-2 border-black rounded-md px-2 py-1 nb-press">초기화</button>
+        </div>
+        <div class="mb-4"><div class="h-4 bg-white border-2 border-black rounded-md overflow-hidden"><div id="checkBar" class="h-full bg-[#B8E986] transition-all" style="width:0%"></div></div><p id="checkPct" class="text-right text-xs font-black mt-1">0%</p></div>
+        <ul class="space-y-2.5 text-sm" id="checkList"></ul>
+      </div>
+
+      <div class="space-y-3">
+        <h3 class="font-black text-black flex items-center gap-2 mb-1"><span>🛠️</span> 자주 막히는 문제</h3>
+        <div id="troubles" class="space-y-3"></div>
+      </div>
+    </div>
+
+    <div class="mt-6 bg-[#FF6B9D] nb rounded-lg p-6">
+      <h3 class="font-black text-black mb-3 flex items-center gap-2"><span>🛡️</span> 안전·윤리 원칙</h3>
+      <div class="grid sm:grid-cols-3 gap-3 text-sm font-semibold">
+        <div class="bg-white border-2 border-black rounded-md p-3.5"><b class="font-black">익명</b><p class="text-black/70 mt-0.5">실명·학번 대신 번호·별명 사용</p></div>
+        <div class="bg-white border-2 border-black rounded-md p-3.5"><b class="font-black">비수집</b><p class="text-black/70 mt-0.5">얼굴 사진·연락처·민감정보 입력란 금지</p></div>
+        <div class="bg-white border-2 border-black rounded-md p-3.5"><b class="font-black">로컬 처리</b><p class="text-black/70 mt-0.5">데이터는 브라우저 안에서만, 외부 전송 X</p></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="max-w-6xl mx-auto px-4 py-10 mt-4 text-center">
+  <div class="bg-black text-white rounded-lg p-6 border-[3px] border-black">
+    <p class="font-black text-lg">초등교사를 위한 바이브코딩</p>
+    <p class="mt-1 text-sm font-semibold text-white/80">고급 활용 &amp; 안정적 배포 · 장흥초등학교 교사 연수 보조자료</p>
+    <p class="mt-3 text-xs font-bold text-[#FFD93D]">이 페이지 자체가 단일 HTML 파일 → Netlify·GitHub Pages에 그대로 배포됩니다 🚀</p>
+  </div>
+</footer>
+
+<div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-black text-white text-sm font-black px-4 py-2.5 rounded-md border-2 border-[#FFD93D] opacity-0 pointer-events-none transition z-50">복사되었습니다 ✓</div>
+
+<script>
+/* ============================================================
+   데이터 정의 (코드와 분리 — 고급 기법 ① 그대로 시연)
+============================================================ */
+const WORKFLOW = [
+  { n:1, t:"아이디어 구체화", d:"대상 학년·수업 목표·핵심 장면을 한 문장으로. 예: '4학년 분수 비교를 게임처럼 연습하는 퀴즈'.", tip:"막연하면 '내 수업에서 반복되는 일 하나'부터." },
+  { n:2, t:"기능 분해", d:"화면 / 데이터 / 상호작용 / 저장으로 쪼개기. 무엇을 보여주고, 무엇을 누르고, 무엇을 기억할지.", tip:"기능을 목록(불릿)으로 적으면 프롬프트가 정확해집니다." },
+  { n:3, t:"구조화 프롬프트 작성", d:"8요소 공식(대상·목표·화면·기능·데이터·조건·디자인·안전)으로 작성. '문제는 배열로 분리', '한 파일 HTML'을 꼭 명시.", tip:"'프롬프트' 탭의 템플릿을 복사해 채우세요." },
+  { n:4, t:"제작 & 반복 개선", d:"1차 생성 후 한 번에 다 고치지 말고 '기능 하나씩' 요청. 예: '점수 기능 추가' → 확인 → '힌트 추가'.", tip:"작게 바꾸고 바로 실행해 확인하는 루틴이 안정성의 핵심." },
+  { n:5, t:"테스트 (학생 입장)", d:"태블릿·전자칠판에서 글자가 보이는지, 버튼이 눌리는지, 안내문이 이해되는지 직접 눌러보기.", tip:"저학년이면 옆 반 학생 1명에게 30초만 시켜보기." },
+  { n:6, t:"오류 정리", d:"화면의 오류 메시지를 '그대로 복사' + '무엇을 하려다 났는지' + '기대 결과'를 함께 전달.", tip:"AI에게 '왜 그런지 먼저 설명하고 고쳐줘'라고 하면 학습에도 좋아요." },
+  { n:7, t:"안정적 배포", d:"완성되면 Canvas 링크에 머물지 말고 Netlify·GitHub Pages로 고정 URL 배포. QR로 학생 배부.", tip:"'배포 비교' 탭에서 상황에 맞는 방법 선택." },
+];
+
+const SNIPPETS = [
+  { tag:"신규 제작", color:"pink", title:"완성도 높은 수업 웹앱 새로 만들기",
+    body:`너는 초등 수업용 웹앱을 만드는 전문가야.
+아래 조건으로 "한 개의 HTML 파일"을 만들어줘. (외부 라이브러리 없이 순수 HTML/CSS/JS)
+
+[대상] 초등 4학년 학생
+[목표/주제] 분수 크기 비교 연습
+[화면 흐름] 시작화면 → 문제화면(분수 2개) → 결과화면(점수)
+[기능] 정답 확인 / 점수 / 힌트(통분 설명) / 다시 풀기 / 진행 표시
+[데이터] 문제는 코드 맨 위 배열(JSON)로 분리해서, 내용만 바꿔 재사용 가능하게
+[저장] 최고 점수는 localStorage에 저장
+[디자인] 큰 글자, 넓은 버튼, 태블릿·전자칠판에서도 잘 보이는 반응형
+[안전] 개인정보 입력란 없음, 외부로 어떤 데이터도 전송하지 않음
+
+먼저 전체 구조를 간단히 설명한 뒤, 완성된 전체 코드를 한 번에 보여줘.` },
+  { tag:"기능 추가", color:"purple", title:"기능을 하나씩 안전하게 추가",
+    body:`지금 코드는 그대로 두고, 아래 기능 "하나만" 추가해줘. 다른 부분은 바꾸지 마.
+
+추가할 기능: 문제를 5개 풀면 "잘했어요!" 축하 화면과 함께
+맞힌 개수에 따라 별(★)을 1~3개 보여주기.
+
+추가 후, 어떤 부분이 바뀌었는지 3줄로 알려주고 전체 코드를 다시 줘.` },
+  { tag:"오류 수정", color:"teal", title:"오류를 정확히 전달해서 고치기",
+    body:`아래 오류가 발생했어. 원인을 먼저 설명한 뒤 고쳐줘.
+
+[하려던 것] 정답 버튼을 눌렀을 때 점수가 올라가야 함
+[증상] 버튼을 눌러도 점수가 0에서 안 변함
+[화면 오류 메시지] (콘솔에 뜬 내용을 그대로 붙여넣기)
+[기대 결과] 정답이면 +10점, 점수 숫자가 즉시 바뀜
+
+고친 부분만 콕 집어 설명하고, 전체 코드를 다시 줘.` },
+  { tag:"디자인 개선", color:"yellow", title:"저학년·교실 환경에 맞게 다듬기",
+    body:`기능은 그대로 두고 디자인만 개선해줘.
+
+- 글자를 더 크게 (저학년이 멀리서도 보이게)
+- 버튼을 더 넓고 누르기 쉽게
+- 색은 또렷하고 대비가 분명하게
+- 전자칠판(가로 큰 화면)과 태블릿(세로) 모두에서 깨지지 않게 반응형
+
+바뀐 점을 요약하고 전체 코드를 다시 줘.` },
+  { tag:"리팩토링", color:"lime", title:"내용만 바꿔 재사용하게 정리",
+    body:`이 코드를 "내용만 바꾸면 다른 과목에도 쓸 수 있게" 정리해줘.
+
+- 문제/정답/힌트를 코드 맨 위 배열 한 곳으로 모아줘
+- 그 배열만 수정하면 사회·과학 퀴즈로도 바뀌도록
+- 코드에 한국어 주석으로 "여기를 바꾸면 됩니다" 표시
+
+정리된 전체 코드를 줘.` },
+];
+
+const DEPLOY = [
+  { name:"Gemini Canvas 공유", color:"purple", steps:[
+    "Canvas에서 앱이 완성되면 우측 상단 <b>공유(Share)</b> 클릭",
+    "<b>링크 보기 권한</b>을 '링크가 있는 모든 사용자'로 설정",
+    "생성된 링크를 복사해 학생·동료에게 전달",
+    "⚠️ 코드를 수정하면 링크가 바뀔 수 있고, 영구 보관용은 아님 → 1회성 시연에 적합",
+  ]},
+  { name:"Netlify Drop (가장 추천)", color:"teal", steps:[
+    "완성된 코드를 <b>index.html</b> 이름으로 저장 (파일 이름 중요!)",
+    "<b>app.netlify.com/drop</b> 접속 (회원가입 없이도 가능)",
+    "index.html 파일(또는 폴더)을 화면에 <b>드래그 &amp; 드롭</b>",
+    "몇 초 뒤 <b>고정 URL</b> 생성 → 그대로 다음 수업·다른 반에도 재사용",
+    "QR 코드로 만들어 교실 화면에 띄우면 학생이 바로 접속 👍",
+  ]},
+  { name:"GitHub Pages", color:"yellow", steps:[
+    "github.com 가입 → 새 저장소(Repository) 만들기 (Public)",
+    "index.html 업로드 (Add file → Upload files)",
+    "Settings → Pages → Branch를 main / root로 지정 후 저장",
+    "1~2분 뒤 <b>username.github.io/저장소이름</b> URL 생성",
+    "여러 수업 자료를 한 곳에 모아 버전 관리하기 좋음",
+  ]},
+];
+
+const GALLERY = [
+  { emoji:"📖", subj:"국어", title:"독서 질문 카드", desc:"중심 문장 찾기·생각 나누기. 책을 읽고 질문 카드를 넘기며 깊이 읽기.",
+    prompt:`초등 3학년 국어 독서활동용 한 파일 HTML 웹앱을 만들어줘.
+질문 카드를 한 장씩 넘기며 보여주고(이전/다음), '중심 문장 찾기' 입력칸과
+'생각 나누기' 메모를 제공. 질문은 배열로 분리. 큰 글자·반응형.
+개인정보 입력 없음, 외부 전송 없음.` },
+  { emoji:"🔢", subj:"수학", title:"받아올림 덧셈 연습", desc:"풀이 과정을 단계로 보여주는 맞춤 피드백 퀴즈.",
+    prompt:`초등 2학년 받아올림 덧셈 연습용 한 파일 HTML 퀴즈를 만들어줘.
+숫자 키패드 입력, 정답/오답 즉시 피드백, 틀리면 '십의 자리·일의 자리로 나눠 계산'
+힌트 표시. 문제는 배열로 분리, 점수·최고점 localStorage 저장. 큰 글자·반응형.` },
+  { emoji:"🔬", subj:"과학", title:"실험 안전 체크리스트", desc:"실험 전 보안경·장갑·환기·정리를 점검하는 인터랙티브 체크.",
+    prompt:`초등 과학 실험 안전 점검용 한 파일 HTML 체크리스트를 만들어줘.
+항목(보안경·장갑·환기·정리)을 체크하면 진행률 막대가 차고, 모두 체크하면
+'안전하게 실험해요!' 표시. 항목은 배열로 분리. 체크 상태 localStorage 저장.` },
+  { emoji:"🗳️", subj:"학급", title:"역할 뽑기 룰렛", desc:"모둠장·기록이·발표자 등을 공정하게 무작위로 뽑는 도구.",
+    prompt:`학급 역할 분배용 한 파일 HTML 룰렛을 만들어줘.
+역할 목록(배열)을 돌려 무작위로 뽑고, 이미 뽑힌 역할은 제외하는 옵션.
+'다시 뽑기' 버튼, 큰 글자·전자칠판용 큰 화면. 학생 이름 대신 번호 사용.` },
+  { emoji:"🌳", subj:"사회·창체", title:"우리 동네 문제 지도", desc:"지역 문제를 관찰·분류·실천 점검하는 디지털 시민성 활동.",
+    prompt:`초등 사회/창체용 한 파일 HTML 활동을 만들어줘.
+동네 문제를 카드로 추가하고(관찰), 분류(환경·안전·시설)하고, 실천 다짐을
+체크(점검)하는 흐름. 데이터는 배열, localStorage 저장. 개인정보 없음.` },
+  { emoji:"🔤", subj:"국어·영어", title:"낱말 복습 카드", desc:"단어와 뜻을 뒤집으며 외우는 플립 카드.",
+    prompt:`낱말 복습용 한 파일 HTML 플립카드를 만들어줘.
+카드를 누르면 앞(낱말)→뒤(뜻)로 뒤집히고, 이전/다시보기/다음 버튼.
+낱말 목록은 배열로 분리해 과목 무관 재사용 가능하게. 큰 글자·반응형.` },
+];
+
+const CHECKS = [
+  "학생 입장에서 태블릿·전자칠판으로 직접 눌러봤다",
+  "글자가 충분히 크고 버튼이 누르기 쉽다",
+  "안내 문구가 해당 학년이 이해할 수준이다",
+  "새로고침해도 동작이 깨지지 않는다",
+  "개인정보(이름·사진·연락처) 입력란이 없다",
+  "어떤 데이터도 외부로 전송되지 않는다(브라우저 안에서만 동작)",
+  "파일명을 index.html로 저장했다",
+  "고정 URL로 배포하고 직접 접속해 확인했다",
+  "QR 코드 또는 짧은 링크로 학생 배부 준비를 마쳤다",
+];
+
+const TROUBLES = [
+  { q:"화면이 하얗게만 나와요", a:"보통 작은 오타(괄호·따옴표 누락)예요. 브라우저에서 F12 → Console의 빨간 메시지를 '그대로 복사'해 AI에게 전달하면 정확히 고쳐줍니다." },
+  { q:"Canvas에선 됐는데 배포하니 안 돼요", a:"파일명이 반드시 index.html이어야 합니다. 또한 외부 인터넷 자료(CDN)를 쓰면 학교망에서 막힐 수 있어요 → '라이브러리 없이 순수 HTML로'라고 요청하세요." },
+  { q:"수정할 때마다 전체가 망가져요", a:"'한 번에 다 고치기'가 원인입니다. '지금 코드는 그대로 두고 이 기능 하나만'이라고 범위를 좁혀 요청하세요. (프롬프트 탭의 '기능 추가' 참고)" },
+  { q:"저장한 점수가 사라져요", a:"localStorage는 같은 브라우저·기기에서만 유지됩니다. 시크릿창·다른 기기는 초기화돼요. 학급 공용이라면 그게 오히려 안전합니다." },
+  { q:"학생마다 화면이 달라 보여요", a:"기기 화면 크기 차이입니다. '태블릿 세로·전자칠판 가로 모두에서 깨지지 않게 반응형으로'라고 명시해 다시 요청하세요." },
+];
+
+/* 실제 배포 링크 (배포 후 이 값만 채우면 배너에 자동 반영) */
+const LIVE = {
+  netlify: "",   // Netlify 배포 후 채워집니다
+  ghpages: "https://techkwon.github.io/vibe-coding-guide/",
+};
+
+/* ============================================================
+   렌더링
+============================================================ */
+const NBC = { pink:'#FF6B9D', purple:'#B388FF', teal:'#4ECDC4', yellow:'#FFD93D', lime:'#B8E986', slate:'#E5E7EB' };
+function nbColor(c){ return NBC[c] || '#E5E7EB'; }
+
+document.getElementById('workflow').innerHTML = WORKFLOW.map(s => `
+  <details class="bg-white nb rounded-lg overflow-hidden">
+    <summary class="flex items-center gap-3 p-4">
+      <span class="w-10 h-10 shrink-0 rounded-md bg-[#FFD93D] border-[3px] border-black grid place-items-center font-black text-black">${s.n}</span>
+      <span class="font-black text-black flex-1">${s.t}</span>
+      <span class="acc-arrow text-black transition">▾</span>
+    </summary>
+    <div class="px-4 pb-4 pl-16 text-sm">
+      <p class="text-black/80 font-semibold leading-relaxed">${s.d}</p>
+      <p class="mt-2 text-xs font-bold text-black bg-[#B8E986] border-2 border-black rounded-md px-3 py-2">💡 ${s.tip}</p>
+    </div>
+  </details>`).join('');
+
+document.getElementById('snippets').innerHTML = SNIPPETS.map((s,i) => `
+  <div class="bg-white nb rounded-lg overflow-hidden">
+    <div class="flex items-center justify-between gap-2 px-4 py-3 border-b-[3px] border-black" style="background:${nbColor(s.color)}">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="px-2 py-0.5 rounded-md bg-white border-2 border-black text-black text-xs font-black shrink-0">${s.tag}</span>
+        <span class="font-black text-black text-sm truncate">${s.title}</span>
+      </div>
+      <button onclick="copyText(this, ${i})" class="copy-btn shrink-0 px-3 py-1.5 rounded-md bg-black text-white text-xs font-black border-2 border-black nb-press">복사</button>
+    </div>
+    <pre class="code-scroll overflow-x-auto text-xs sm:text-[13px] leading-relaxed text-black p-4 whitespace-pre-wrap bg-[#FBFBF2]">${escapeHtml(s.body)}</pre>
+  </div>`).join('');
+
+document.getElementById('deploySteps').innerHTML = DEPLOY.map((d,i) => `
+  <details class="bg-white nb rounded-lg overflow-hidden" ${i===1?'open':''}>
+    <summary class="flex items-center gap-3 p-4">
+      <span class="w-10 h-10 shrink-0 rounded-md border-[3px] border-black grid place-items-center font-black text-black" style="background:${nbColor(d.color)}">${i+1}</span>
+      <span class="font-black text-black flex-1">${d.name}</span>
+      <span class="acc-arrow text-black transition">▾</span>
+    </summary>
+    <ol class="px-4 pb-4 pl-16 space-y-2 text-sm text-black/80 font-semibold list-decimal">
+      ${d.steps.map(st => `<li class="leading-relaxed">${st}</li>`).join('')}
+    </ol>
+  </details>`).join('');
+
+document.getElementById('galleryGrid').innerHTML = GALLERY.map((g,i) => `
+  <div class="bg-white nb rounded-lg p-5 flex flex-col">
+    <div class="flex items-center gap-2 mb-2">
+      <span class="text-2xl">${g.emoji}</span>
+      <span class="px-2 py-0.5 rounded-md bg-[#B388FF] border-2 border-black text-black text-xs font-black">${g.subj}</span>
+    </div>
+    <h4 class="font-black text-black">${g.title}</h4>
+    <p class="text-sm text-black/70 font-semibold leading-relaxed mt-1 flex-1">${g.desc}</p>
+    <button onclick="showPrompt(${i})" class="mt-3 px-3.5 py-2 rounded-md bg-[#FFD93D] border-[3px] border-black text-black text-sm font-black nb-press">📋 프롬프트 보기</button>
+  </div>`).join('');
+
+const checkState = JSON.parse(localStorage.getItem('vibe_checks')||'{}');
+function renderChecks(){
+  document.getElementById('checkList').innerHTML = CHECKS.map((c,i) => `
+    <li>
+      <label class="flex items-start gap-2.5 cursor-pointer">
+        <input type="checkbox" data-ci="${i}" ${checkState[i]?'checked':''} class="check-cb mt-0.5 w-5 h-5 accent-black shrink-0">
+        <span class="text-black font-semibold ${checkState[i]?'line-through text-black/40':''}">${c}</span>
+      </label>
+    </li>`).join('');
+  updateBar();
+}
+function updateBar(){
+  const total = CHECKS.length;
+  const done = Object.values(checkState).filter(Boolean).length;
+  const pct = Math.round(done/total*100);
+  document.getElementById('checkBar').style.width = pct+'%';
+  document.getElementById('checkPct').textContent = pct+'% ('+done+'/'+total+')';
+}
+renderChecks();
+document.getElementById('checkList').addEventListener('change', e => {
+  if(e.target.classList.contains('check-cb')){
+    checkState[e.target.dataset.ci] = e.target.checked;
+    localStorage.setItem('vibe_checks', JSON.stringify(checkState));
+    renderChecks();
+  }
+});
+document.getElementById('resetCheck').addEventListener('click', () => {
+  for(const k in checkState) delete checkState[k];
+  localStorage.removeItem('vibe_checks');
+  renderChecks();
+});
+
+document.getElementById('troubles').innerHTML = TROUBLES.map(t => `
+  <details class="bg-white nb rounded-lg overflow-hidden">
+    <summary class="flex items-center gap-2 p-4">
+      <span class="text-black font-black bg-[#FF6B9D] border-2 border-black rounded-md w-7 h-7 grid place-items-center shrink-0">Q</span>
+      <span class="font-black text-black text-sm flex-1">${t.q}</span>
+      <span class="acc-arrow text-black transition">▾</span>
+    </summary>
+    <p class="px-4 pb-4 pl-[52px] text-sm text-black/80 font-semibold leading-relaxed">${t.a}</p>
+  </details>`).join('');
+
+// 실제 배포 링크 반영
+(function(){
+  const nl = document.getElementById('netlifyLink');
+  const gh = document.getElementById('ghPagesLink');
+  if(LIVE.netlify){ nl.href = LIVE.netlify; nl.textContent = LIVE.netlify; }
+  if(LIVE.ghpages){ gh.href = LIVE.ghpages; gh.textContent = LIVE.ghpages; }
+  if(!LIVE.netlify && !LIVE.ghpages){ document.getElementById('liveDeployBanner').style.display='none'; }
+})();
+
+/* ============================================================
+   인터랙션
+============================================================ */
+function escapeHtml(s){ return s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.opacity = 1;
+  setTimeout(()=> t.style.opacity = 0, 1600);
+}
+function copyText(btn, i){
+  navigator.clipboard.writeText(SNIPPETS[i].body).then(()=>{
+    const o = btn.textContent; btn.textContent = '복사됨 ✓';
+    toast('프롬프트가 복사되었습니다 ✓');
+    setTimeout(()=> btn.textContent = o, 1400);
+  });
+}
+function showPrompt(i){
+  const g = GALLERY[i];
+  navigator.clipboard.writeText(g.prompt).catch(()=>{});
+  openModal(`
+    <div class="flex items-center gap-2 mb-3">
+      <span class="text-2xl">${g.emoji}</span>
+      <h3 class="font-black text-black text-lg">${g.title}</h3>
+    </div>
+    <p class="text-xs font-bold text-black bg-[#B8E986] border-2 border-black rounded-md px-2 py-1 mb-2 inline-block">✓ 클립보드에 복사됨 — Gemini Canvas / Claude에 붙여넣으세요</p>
+    <pre class="code-scroll overflow-x-auto text-xs sm:text-[13px] leading-relaxed text-black bg-[#FBFBF2] border-2 border-black rounded-md p-4 whitespace-pre-wrap">${escapeHtml(g.prompt)}</pre>
+    <button onclick="copyModalPrompt(${i})" class="mt-3 w-full py-2.5 rounded-md bg-[#FFD93D] border-[3px] border-black text-black font-black text-sm nb-press">다시 복사하기</button>
+  `);
+}
+function copyModalPrompt(i){
+  navigator.clipboard.writeText(GALLERY[i].prompt).then(()=>{ toast('복사되었습니다 ✓'); });
+}
+function openModal(html){
+  let m = document.getElementById('modal');
+  if(!m){
+    m = document.createElement('div');
+    m.id = 'modal';
+    m.className = 'fixed inset-0 z-50 bg-black/40 grid place-items-center p-4';
+    m.addEventListener('click', e => { if(e.target===m) m.remove(); });
+    document.body.appendChild(m);
+  }
+  m.innerHTML = `<div class="bg-white nb-lg rounded-lg p-5 sm:p-6 max-w-lg w-full max-h-[85vh] overflow-y-auto code-scroll fade-in relative">
+    <button onclick="document.getElementById('modal').remove()" class="absolute top-4 right-4 w-9 h-9 grid place-items-center rounded-md bg-[#FF6B9D] border-2 border-black text-black font-black nb-press">✕</button>
+    ${html}</div>`;
+}
+
+/* 탭 전환 */
+function switchTab(name){
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('hidden', p.dataset.panel !== name));
+  document.querySelectorAll('.tab-btn, .mtab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.panel').forEach(p => { if(p.dataset.panel===name) p.classList.add('fade-in'); });
+  document.getElementById('mobileMenu').classList.add('hidden');
+  window.scrollTo({top:0, behavior:'smooth'});
+  history.replaceState(null,'','#'+name);
+}
+document.querySelectorAll('.tab-btn, .mtab').forEach(b => b.addEventListener('click', ()=> switchTab(b.dataset.tab)));
+document.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', ()=> switchTab(b.dataset.goto)));
+document.getElementById('menuBtn').addEventListener('click', ()=> document.getElementById('mobileMenu').classList.toggle('hidden'));
+const initTab = location.hash.replace('#','');
+if(['home','guide','prompt','deploy','gallery','checklist'].includes(initTab)) switchTab(initTab);
+
+/* 분수 퀴즈 라이브 데모 */
+const FRACTIONS = [
+  {a:[3,4], b:[5,8]}, {a:[1,2], b:[2,4]}, {a:[2,3], b:[3,5]},
+  {a:[5,6], b:[3,4]}, {a:[1,3], b:[2,6]}, {a:[7,8], b:[3,4]},
+  {a:[2,5], b:[1,2]}, {a:[4,6], b:[2,3]},
+];
+let qi = 0, score = 0, answered = false;
+let best = parseInt(localStorage.getItem('frac_best')||'0');
+document.getElementById('best').textContent = best;
+
+function loadFrac(){
+  answered = false;
+  const f = FRACTIONS[qi % FRACTIONS.length];
+  document.getElementById('fracA').innerHTML = `<div class="leading-none text-center"><div>${f.a[0]}</div><div class="border-t-[3px] border-black w-8 mx-auto my-0.5"></div><div>${f.a[1]}</div></div>`;
+  document.getElementById('fracB').innerHTML = `<div class="leading-none text-center"><div>${f.b[0]}</div><div class="border-t-[3px] border-black w-8 mx-auto my-0.5"></div><div>${f.b[1]}</div></div>`;
+  document.getElementById('qNum').textContent = qi+1;
+  const msg = document.getElementById('fracMsg');
+  msg.textContent = ''; msg.className = 'text-center text-sm font-black min-h-[20px] mb-3';
+  document.getElementById('hintBox').classList.add('hidden');
+}
+function correctOp(f){
+  const va = f.a[0]/f.a[1], vb = f.b[0]/f.b[1];
+  if(Math.abs(va-vb) < 1e-9) return '=';
+  return va > vb ? '>' : '<';
+}
+document.querySelectorAll('.cmp-btn').forEach(btn => btn.addEventListener('click', () => {
+  if(answered) return;
+  answered = true;
+  const f = FRACTIONS[qi % FRACTIONS.length];
+  const picked = btn.dataset.op === 'gt' ? '>' : btn.dataset.op === 'lt' ? '<' : '=';
+  const correct = correctOp(f);
+  const msg = document.getElementById('fracMsg');
+  if(picked === correct){
+    score += 10;
+    document.getElementById('score').textContent = score;
+    msg.textContent = '정답이에요! 🎉  +10점';
+    msg.className = 'text-center text-sm font-black min-h-[20px] mb-3 text-[#15803d]';
+    if(score > best){ best = score; localStorage.setItem('frac_best', best); document.getElementById('best').textContent = best; }
+  } else {
+    msg.textContent = `아쉬워요. 정답은 ${correct} 예요.`;
+    msg.className = 'text-center text-sm font-black min-h-[20px] mb-3 text-[#dc2626]';
+    score = 0; document.getElementById('score').textContent = 0;
+  }
+}));
+document.getElementById('nextBtn').addEventListener('click', ()=>{ qi++; loadFrac(); });
+document.getElementById('hintBtn').addEventListener('click', ()=>{
+  const f = FRACTIONS[qi % FRACTIONS.length];
+  const lcm = (f.a[1]*f.b[1]);
+  const na = f.a[0]*(lcm/f.a[1]), nb = f.b[0]*(lcm/f.b[1]);
+  const box = document.getElementById('hintBox');
+  box.innerHTML = `통분하면 분모를 ${lcm}로 맞춰요 → <b>${na}/${lcm}</b> 와 <b>${nb}/${lcm}</b>. 분자를 비교!`;
+  box.classList.remove('hidden');
+});
+loadFrac();
+</script>
+</body>
+</html>
